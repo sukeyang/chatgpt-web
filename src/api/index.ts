@@ -1,3 +1,4 @@
+import * as CryptoJS from 'crypto-js'
 import type { AxiosProgressEvent, GenericAbortSignal } from 'axios'
 import { post } from '@/utils/request'
 import { useAuthStore, useSettingStore } from '@/store'
@@ -43,10 +44,20 @@ export function fetchChatAPIProcess<T = any>(
       top_p: settingStore.top_p,
     }
   }
+  // 计算 MD5 值
+  const t = Date.now() / 1000
+  const app = 21
+  const appName = 'shengxin'
+  const signStr = `chat-process&app=${app}&appName=${appName}&prompt=${params.prompt}&t=${t}`
+  const sign = CryptoJS.MD5(`${signStr}`).toString()
 
   return post<T>({
     url: '/chat-process',
     data,
+    t,
+    app,
+    appName,
+    sign,
     signal: params.signal,
     onDownloadProgress: params.onDownloadProgress,
   })

@@ -1,3 +1,4 @@
+import * as CryptoJS from 'crypto-js'
 import express from 'express'
 import type { RequestProps } from './types'
 import type { ChatMessage } from './chatgpt'
@@ -23,7 +24,20 @@ router.post('/chat-process', [auth, limiter], async (req, res) => {
   res.setHeader('Content-type', 'application/octet-stream')
 
   try {
-    const { prompt, options = {}, systemMessage, temperature, top_p } = req.body as RequestProps
+    const { prompt, options = {}, systemMessage, temperature, top_p, app, t, sign } = req.body as RequestProps
+    const appName = 'shengxin'
+    // 检查时间戳是否过期，这里假设请求时间戳与当前时间相差不超过 5 分钟
+    const currentTime = Math.floor(Date.now() / 1000)
+    if (t && Math.abs(currentTime - t) > 300)
+      throw new Error('请求已过期')
+
+    // 检查签名是否正确
+    const signStr = `chat-process&app=${app}&appName=${appName}&prompt=${prompt}&t=${t}`
+    const md5 = CryptoJS.MD5(`${signStr}`).toString()
+
+    if (md5 !== sign)
+      throw new Error('签名错误')
+
     let firstChunk = true
     await chatReplyProcess({
       message: prompt,

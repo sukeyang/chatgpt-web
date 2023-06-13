@@ -11,6 +11,10 @@ export interface HttpOption {
   signal?: GenericAbortSignal
   beforeRequest?: () => void
   afterRequest?: () => void
+  t?: number
+  app?: number
+  appName?: string
+  sign?: string
 }
 
 export interface Response<T = any> {
